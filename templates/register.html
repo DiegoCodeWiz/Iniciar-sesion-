@@ -425,7 +425,7 @@
                        pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
                        maxlength="100"
                        autocomplete="email">
-                <div class="invalid-feedback">Ingrese un correo válido (ej. .com).</div>
+                <div class="invalid-feedback">Ingrese un correo válido.</div>
                 <div class="real-time-feedback" id="emailFeedback"></div>
             </div>
 
@@ -468,7 +468,6 @@
                         <i class="fas" id="commonCheck"></i>
                         <span>No es una contraseña común</span>
                     </div>
-                    <!-- ELIMINADO: Requisito de símbolo especial -->
                 </div>
             </div>
 
@@ -613,17 +612,26 @@
                 return true;
             }
             
-            // Validar formato de email
-            const emailRegex = /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/i;
+            // Validar formato de email - ACEPTA TODOS LOS DOMINIOS
+            // Expresión regular mejorada que acepta cualquier dominio válido
+            const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
             
             if (!emailRegex.test(email)) {
-                showValidationFeedback(emailInput, false, 'Ingrese un correo válido (ej. usuario@dominio.com)');
+                showValidationFeedback(emailInput, false, 'Ingrese un correo electrónico válido');
                 return false;
             }
             
-            // Validar extensión .com o similar
-            if (!/\.(com|org|net|edu|gov|io|co|info)$/i.test(email)) {
-                showValidationFeedback(emailInput, false, 'Recomendado: usar dominios como .com, .org, .net');
+            // Verificación adicional: debe tener un punto después del @
+            if (!email.includes('@') || email.split('@')[1].indexOf('.') === -1) {
+                showValidationFeedback(emailInput, false, 'El correo debe tener un dominio válido');
+                return false;
+            }
+            
+            // Verificación adicional: el dominio debe tener al menos 2 caracteres después del último punto
+            const domainPart = email.split('@')[1];
+            const lastDotIndex = domainPart.lastIndexOf('.');
+            if (lastDotIndex === -1 || domainPart.length - lastDotIndex - 1 < 2) {
+                showValidationFeedback(emailInput, false, 'El dominio debe tener al menos 2 caracteres');
                 return false;
             }
             
