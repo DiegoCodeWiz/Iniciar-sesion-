@@ -275,7 +275,7 @@
             display: none;
         }
 
-        /* Validaciones */
+        /* Validaciones en tiempo real */
         .valid-field {
             border-color: var(--success) !important;
             animation: bounce 0.4s ease;
@@ -335,6 +335,22 @@
         .invalid-feedback {
             color: var(--error);
             font-weight: 500;
+        }
+
+        /* Estilos para feedback en tiempo real */
+        .real-time-feedback {
+            font-size: 0.75rem;
+            margin-top: 5px;
+            display: block;
+            min-height: 18px;
+        }
+
+        .real-time-valid {
+            color: var(--success);
+        }
+
+        .real-time-invalid {
+            color: var(--error);
         }
     </style>
 </head>
@@ -399,6 +415,7 @@
                        oncopy="return false;"
                        oncut="return false;">
                 <div class="invalid-feedback">Solo letras (3 a 20 caracteres). No se permiten scripts ni caracteres especiales.</div>
+                <div class="real-time-feedback" id="nombreFeedback"></div>
             </div>
 
             <div class="mb-3">
@@ -409,6 +426,7 @@
                        maxlength="100"
                        autocomplete="email">
                 <div class="invalid-feedback">Ingrese un correo válido (ej. .com).</div>
+                <div class="real-time-feedback" id="emailFeedback"></div>
             </div>
 
             <div class="mb-3">
@@ -468,6 +486,7 @@
                     </button>
                 </div>
                 <div class="invalid-feedback" id="confirm-err">Las contraseñas no coinciden.</div>
+                <div class="real-time-feedback" id="confirmPasswordFeedback"></div>
             </div>
 
             <!-- Protección contra envíos rápidos -->
@@ -518,6 +537,117 @@
         const togglePassword = document.getElementById('togglePassword');
         const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
         const rateLimitNotice = document.getElementById('rateLimitNotice');
+
+        // ========== VALIDACIÓN EN TIEMPO REAL ==========
+        function showValidationFeedback(input, isValid, message = null) {
+            const feedbackId = input.id + 'Feedback';
+            const feedbackElement = document.getElementById(feedbackId);
+            
+            if (feedbackElement) {
+                if (message) {
+                    feedbackElement.textContent = message;
+                    feedbackElement.className = isValid ? 'real-time-feedback real-time-valid' : 'real-time-feedback real-time-invalid';
+                    feedbackElement.style.display = 'block';
+                } else {
+                    feedbackElement.style.display = 'none';
+                }
+            }
+            
+            // Efectos visuales en el campo
+            if (input.value.trim() === '') {
+                input.classList.remove('valid-field', 'invalid-field');
+                return;
+            }
+            
+            if (isValid) {
+                input.classList.remove('invalid-field');
+                input.classList.add('valid-field');
+            } else {
+                input.classList.remove('valid-field');
+                input.classList.add('invalid-field');
+            }
+            
+            // Remover clases después de la animación
+            setTimeout(() => {
+                input.classList.remove('valid-field', 'invalid-field');
+            }, 1000);
+        }
+
+        // ========== VALIDACIÓN DE NOMBRE EN TIEMPO REAL ==========
+        function validateNameRealTime() {
+            const nameInput = document.getElementById('nombre');
+            const name = nameInput.value.trim();
+            
+            // Si está vacío, no mostrar feedback
+            if (name.length === 0) {
+                showValidationFeedback(nameInput, true);
+                return true;
+            }
+            
+            // Validar longitud
+            if (name.length < 3 || name.length > 20) {
+                showValidationFeedback(nameInput, false, 'El nombre debe tener entre 3 y 20 caracteres');
+                return false;
+            }
+            
+            // Validar solo letras y espacios
+            if (!/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(name)) {
+                showValidationFeedback(nameInput, false, 'Solo se permiten letras y espacios');
+                return false;
+            }
+            
+            showValidationFeedback(nameInput, true, '✓ Nombre válido');
+            return true;
+        }
+
+        // ========== VALIDACIÓN DE EMAIL EN TIEMPO REAL ==========
+        function validateEmailRealTime() {
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+            
+            // Si está vacío, no mostrar feedback
+            if (email.length === 0) {
+                showValidationFeedback(emailInput, true);
+                return true;
+            }
+            
+            // Validar formato de email
+            const emailRegex = /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/i;
+            
+            if (!emailRegex.test(email)) {
+                showValidationFeedback(emailInput, false, 'Ingrese un correo válido (ej. usuario@dominio.com)');
+                return false;
+            }
+            
+            // Validar extensión .com o similar
+            if (!/\.(com|org|net|edu|gov|io|co|info)$/i.test(email)) {
+                showValidationFeedback(emailInput, false, 'Recomendado: usar dominios como .com, .org, .net');
+                return false;
+            }
+            
+            showValidationFeedback(emailInput, true, '✓ Correo electrónico válido');
+            return true;
+        }
+
+        // ========== VALIDACIÓN DE CONFIRMACIÓN DE CONTRASEÑA EN TIEMPO REAL ==========
+        function validatePasswordMatchRealTime() {
+            const pw = password.value;
+            const confirm = confirmPw.value;
+            
+            // Si está vacío, no mostrar feedback
+            if (confirm.length === 0) {
+                showValidationFeedback(confirmPw, true);
+                return true;
+            }
+            
+            if (pw !== confirm) {
+                showValidationFeedback(confirmPw, false, '✗ Las contraseñas no coinciden');
+                return false;
+            }
+            
+            showValidationFeedback(confirmPw, true, '✓ Contraseñas coinciden');
+            return true;
+        }
 
         // ========== PROTECCIÓN DE CONTRASEÑA ==========
         function checkPasswordStrength(pw) {
@@ -639,9 +769,12 @@
                     text.textContent += ` - Sugerencia: ${strength.suggestions[0]}`;
                 }
             }
+            
+            // Validar coincidencia en tiempo real
+            validatePasswordMatchRealTime();
         }
 
-        // ========== VALIDACIÓN EN TIEMPO REAL ==========
+        // ========== VALIDACIÓN DE CONTRASEÑA ==========
         function validatePasswordMatch() {
             const pw = password.value;
             const confirm = confirmPw.value;
@@ -715,29 +848,37 @@
             return true;
         }
 
-        // ========== EVENT LISTENERS ==========
-        password.addEventListener('input', function() {
-            updatePasswordStrength();
-            validatePasswordMatch();
-            
-            // Protección contra inyección
-            this.value = this.value.replace(/[<>]/g, '');
-        });
-
-        confirmPw.addEventListener('input', validatePasswordMatch);
-
+        // ========== EVENT LISTENERS PARA VALIDACIÓN EN TIEMPO REAL ==========
         document.getElementById('nombre').addEventListener('input', function() {
-            validateName();
+            validateNameRealTime();
             
             // Protección contra inyección
             this.value = this.value.replace(/[<>]/g, '');
             
-            // Validar en tiempo real
+            // Validar longitud máxima
             if (this.value.length > 20) {
                 this.value = this.value.substring(0, 20);
             }
         });
 
+        document.getElementById('email').addEventListener('input', function() {
+            validateEmailRealTime();
+            
+            // Protección contra inyección
+            this.value = this.value.replace(/[<>]/g, '');
+        });
+
+        password.addEventListener('input', function() {
+            updatePasswordStrength();
+            validatePasswordMatchRealTime();
+            
+            // Protección contra inyección
+            this.value = this.value.replace(/[<>]/g, '');
+        });
+
+        confirmPw.addEventListener('input', validatePasswordMatchRealTime);
+
+        // ========== EVENT LISTENERS ORIGINALES ==========
         togglePassword.addEventListener('click', function() {
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
