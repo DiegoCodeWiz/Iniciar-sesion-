@@ -88,7 +88,7 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        nombre = request.form.get('nombre', '') # No usamos strip() aquí para validar espacios vacíos primero
+        nombre = request.form.get('nombre', '') 
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
         confirm_password = request.form.get('confirm_password', '').strip()
@@ -102,24 +102,24 @@ def register():
         # 2. VALIDACIONES DE SEGURIDAD (Backend)
         errores = []
         
-        # Validar Nombre:
-        # A. Que no esté vacío o sea solo espacios (ej: "   ")
+        # Validar Nombre
         if not nombre or len(nombre.strip()) < 3:
-             errores.append('El nombre debe tener al menos 3 letras reales (no solo espacios).')
-        
-        # B. Que solo tenga letras y espacios (sin números ni símbolos)
+             errores.append('El nombre debe tener al menos 3 letras reales.')
         elif not re.match(r"^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+$", nombre):
              errores.append('El nombre solo puede contener letras.')
 
-        # Validar Email: Debe tener formato completo (usuario@dominio.com)
+        # Validar Email
         email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if not re.match(email_regex, email):
-            errores.append('Ingresa un correo válido con terminación (ej: .com, .net).')
+            errores.append('Ingresa un correo válido.')
 
-        # Validar Password: 8-20 chars, Mayúscula, Minúscula, Número, Símbolo
-        password_regex = r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{8,20}$"
+        # ==================== CAMBIO CLAVE AQUÍ ====================
+        # Se eliminó (?=.*[\W_]) que era lo que obligaba a usar símbolos
+        password_regex = r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,20}$"
+        
         if not re.match(password_regex, password):
-            errores.append('La contraseña debe tener: 8-20 carácteres, Mayúscula, Número y Símbolo (@#$!).')
+            errores.append('La contraseña debe tener: 8-20 caracteres, Mayúscula, Minúscula y Número.')
+        # ===========================================================
 
         if password != confirm_password:
             errores.append('Las contraseñas no coinciden.')
@@ -132,15 +132,12 @@ def register():
             conn = get_connection()
             cursor = conn.cursor()
             
-            # Verificar email duplicado
             cursor.execute('SELECT id FROM usuarios WHERE email = ?', (email,))
             if cursor.fetchone():
                 conn.close()
                 flash('Este correo ya está registrado', 'danger')
                 return redirect(url_for('register'))
             
-            # Insertar usuario
-            # Usamos nombre.strip() para guardar el nombre limpio en la DB
             hashed_pw = generate_password_hash(password)
             cursor.execute(
                 'INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)',
@@ -148,14 +145,13 @@ def register():
             )
             conn.commit()
             
-            # Obtener ID para la sesión automática
             new_id = cursor.lastrowid
             conn.close()
             
             session['user_id'] = new_id
             session['user_name'] = nombre.strip()
             
-            flash(f'¡Bienvenido {nombre.strip()}! Cuenta creada con éxito.', 'success')
+            flash(f'¡Bienvenido {nombre.strip()}! Cuenta creada.', 'success')
             return redirect(url_for('dashboard'))
             
         except Exception as e:
@@ -177,7 +173,6 @@ def logout():
     return redirect(url_for('inicio'))
 
 if __name__ == '__main__':
-    # Crear carpeta templates si no existe
     if not os.path.exists('templates'):
         os.makedirs('templates')
     
