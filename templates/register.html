@@ -36,7 +36,7 @@
             position: relative;
         }
 
-        /* ===== BREADCRUMBS STYLES ===== */
+        /* ===== BREADCRUMBS ===== */
         .breadcrumb-container {
             position: absolute;
             top: 20px;
@@ -97,7 +97,6 @@
             text-align: center;
         }
 
-        /* Responsive breadcrumbs */
         @media (max-width: 768px) {
             .breadcrumb-container {
                 top: 10px;
@@ -105,31 +104,12 @@
                 right: 10px;
                 position: fixed;
             }
-            
             .breadcrumb {
                 width: 100%;
                 justify-content: center;
-                padding: 8px 12px;
-                font-size: 0.8rem;
             }
-            
             .register-card {
                 margin-top: 60px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .breadcrumb {
-                font-size: 0.75rem;
-            }
-            
-            .breadcrumb-icon {
-                margin-right: 4px;
-                font-size: 0.8rem;
-            }
-            
-            .breadcrumb-separator {
-                margin: 0 6px;
             }
         }
         /* ===== FIN BREADCRUMBS ===== */
@@ -201,7 +181,6 @@
             z-index: 2;
         }
 
-        /* Indicador de fuerza de contraseña - CORREGIDO */
         .password-strength {
             margin-top: 8px;
             height: 6px;
@@ -224,21 +203,11 @@
             min-height: 18px;
         }
 
-        /* Eliminamos las clases de ancho fijo */
         .strength-weak { background-color: var(--password-weak); }
         .strength-medium { background-color: var(--password-medium); }
         .strength-good { background-color: var(--password-good); }
         .strength-strong { background-color: var(--password-strong); }
 
-        /* Protección contra copiado */
-        .protected-field {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-
-        /* Alertas de seguridad */
         .security-alert {
             background-color: #fff8e1;
             border-left: 4px solid var(--warning);
@@ -267,36 +236,6 @@
         .valid-checklist { color: var(--success); }
         .invalid-checklist { color: var(--error); }
 
-        /* Rate limiting visual */
-        .rate-limit-notice {
-            font-size: 0.75rem;
-            color: var(--warning);
-            margin-top: 5px;
-            display: none;
-        }
-
-        /* Validaciones en tiempo real */
-        .valid-field {
-            border-color: var(--success) !important;
-            animation: bounce 0.4s ease;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-
-        .invalid-field {
-            border-color: var(--error) !important;
-            animation: shake 0.4s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
-        }
-
         .btn-submit {
             background-color: var(--primary-navy);
             color: white;
@@ -313,50 +252,41 @@
         .btn-submit:hover:not(:disabled) {
             opacity: 0.9;
             transform: translateY(-1px);
-            box-shadow: 0 6px 12px rgba(30, 55, 153, 0.15);
         }
 
         .btn-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
-        }
-
-        .input-feedback {
-            font-size: 0.75rem;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .valid-feedback {
-            color: var(--success);
         }
 
         .invalid-feedback {
             color: var(--error);
-            font-weight: 500;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            display: none;
         }
-
-        /* Estilos para feedback en tiempo real */
+        
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+        
         .real-time-feedback {
             font-size: 0.75rem;
             margin-top: 5px;
             display: block;
             min-height: 18px;
         }
+        .real-time-valid { color: var(--success); }
+        .real-time-invalid { color: var(--error); }
+        
+        /* Valid/Invalid styles for inputs */
+        .valid-field { border-color: var(--success) !important; }
+        .invalid-field { border-color: var(--error) !important; }
 
-        .real-time-valid {
-            color: var(--success);
-        }
-
-        .real-time-invalid {
-            color: var(--error);
-        }
     </style>
 </head>
 <body>
 
-    <!-- ===== BREADCRUMBS ===== -->
     <div class="breadcrumb-container">
         <nav class="breadcrumb" aria-label="breadcrumb">
             <div class="breadcrumb-item">
@@ -382,7 +312,7 @@
                 <i class="fas fa-lock"></i>
             </div>
             <h4 class="fw-bold">Crear Cuenta Segura</h4>
-            <p class="text-muted small">Complete los datos para registrarse</p>
+            <p class="text-muted small">La contraseña debe tener: 8-20 caracteres, Mayúscula, Minúscula y Número.</p>
         </div>
 
         <div class="security-alert">
@@ -399,22 +329,16 @@
         {% endwith %}
 
         <form method="POST" action="{{ url_for('register') }}" class="needs-validation" novalidate id="regForm">
-            <!-- CSRF Token (backend) -->
             <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
-            
-            <!-- Campo oculto anti-bots -->
             <input type="text" name="honeypot" style="display:none;" tabindex="-1" autocomplete="off">
 
             <div class="mb-3">
                 <label class="form-label">Nombre Completo</label>
-                <input type="text" class="form-control protected-field" name="nombre" id="nombre" 
+                <input type="text" class="form-control" name="nombre" id="nombre" 
                        placeholder="Ej. Juan Pérez" required 
                        pattern="[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]{3,20}"
-                       maxlength="20"
-                       onpaste="return false;"
-                       oncopy="return false;"
-                       oncut="return false;">
-                <div class="invalid-feedback">Solo letras (3 a 20 caracteres). No se permiten scripts ni caracteres especiales.</div>
+                       maxlength="20">
+                <div class="invalid-feedback">Solo letras (3 a 20 caracteres).</div>
                 <div class="real-time-feedback" id="nombreFeedback"></div>
             </div>
 
@@ -422,9 +346,7 @@
                 <label class="form-label">Correo Electrónico</label>
                 <input type="email" class="form-control" name="email" id="email" 
                        placeholder="usuario@correo.com" required
-                       pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
-                       maxlength="100"
-                       autocomplete="email">
+                       maxlength="100">
                 <div class="invalid-feedback">Ingrese un correo válido.</div>
                 <div class="real-time-feedback" id="emailFeedback"></div>
             </div>
@@ -434,8 +356,8 @@
                 <div class="input-icon-container">
                     <input type="password" class="form-control" name="password" id="password" 
                            placeholder="••••••••" required
-                           minlength="6"
-                           maxlength="128"
+                           minlength="8"
+                           maxlength="20"
                            autocomplete="new-password">
                     <button type="button" class="toggle-password" id="togglePassword">
                         <i class="fas fa-eye"></i>
@@ -450,7 +372,7 @@
                 <div class="security-checklist">
                     <div class="checklist-item">
                         <i class="fas" id="lengthCheck"></i>
-                        <span>Mínimo 6 caracteres</span>
+                        <span>Mínimo 8 caracteres</span>
                     </div>
                     <div class="checklist-item">
                         <i class="fas" id="upperCheck"></i>
@@ -481,14 +403,8 @@
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
-                <div class="invalid-feedback" id="confirm-err">Las contraseñas no coinciden.</div>
+                <div class="invalid-feedback">Las contraseñas no coinciden.</div>
                 <div class="real-time-feedback" id="confirmPasswordFeedback"></div>
-            </div>
-
-            <!-- Protección contra envíos rápidos -->
-            <div class="mb-3 rate-limit-notice" id="rateLimitNotice">
-                <i class="fas fa-clock me-1"></i>
-                Por seguridad, espere unos segundos antes de reintentar.
             </div>
 
             <div class="mb-4 d-flex justify-content-center">
@@ -507,59 +423,30 @@
             <p class="small text-muted">¿Ya tienes cuenta? 
                 <a href="{{ url_for('login') }}" class="text-decoration-none fw-bold" style="color: var(--primary-navy);">Inicia sesión</a>
             </p>
-            <p class="small text-muted mt-2">
-                <a href="#" id="forgotPassword" class="text-decoration-none" style="color: #6c757d;">
-                    <i class="fas fa-key me-1"></i>¿Olvidaste tu contraseña?
-                </a>
-            </p>
         </div>
     </div>
 
     <script>
-        // Lista de contraseñas comunes para verificar
-        const commonPasswords = [
-            'password', '123456', '123456789', 'qwerty', 'password1', 
-            '12345678', '111111', '1234567', '123123', 'admin123',
-            '12345', '1234', '123', 'abc123', 'letmein', 'monkey',
-            'football', 'iloveyou', 'admin', 'welcome', 'sunshine'
-        ];
-
-        // Medidas de seguridad contra ataques
-        let lastSubmitTime = 0;
-        const MIN_SUBMIT_INTERVAL = 3000; // 3 segundos mínimo entre envíos
-        let submissionAttempts = 0;
-        const MAX_ATTEMPTS = 5;
-
-        // Elementos DOM
+        const commonPasswords = ['password', '123456', 'qwerty', 'admin', '12345678'];
         const form = document.getElementById('regForm');
         const password = document.getElementById('password');
         const confirmPw = document.getElementById('confirm_password');
         const submitBtn = document.getElementById('submitBtn');
         const togglePassword = document.getElementById('togglePassword');
         const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-        const rateLimitNotice = document.getElementById('rateLimitNotice');
 
-        // ========== VALIDACIÓN EN TIEMPO REAL ==========
+        // Helpers de Feedback
         function showValidationFeedback(input, isValid, message = null) {
             const feedbackId = input.id + 'Feedback';
             const feedbackElement = document.getElementById(feedbackId);
-            
             if (feedbackElement) {
                 if (message) {
                     feedbackElement.textContent = message;
                     feedbackElement.className = isValid ? 'real-time-feedback real-time-valid' : 'real-time-feedback real-time-invalid';
-                    feedbackElement.style.display = 'block';
                 } else {
-                    feedbackElement.style.display = 'none';
+                    feedbackElement.textContent = '';
                 }
             }
-            
-            // Efectos visuales en el campo
-            if (input.value.trim() === '') {
-                input.classList.remove('valid-field', 'invalid-field');
-                return;
-            }
-            
             if (isValid) {
                 input.classList.remove('invalid-field');
                 input.classList.add('valid-field');
@@ -567,142 +454,69 @@
                 input.classList.remove('valid-field');
                 input.classList.add('invalid-field');
             }
-            
-            // Remover clases después de la animación
-            setTimeout(() => {
-                input.classList.remove('valid-field', 'invalid-field');
-            }, 1000);
         }
 
-        // ========== VALIDACIÓN DE NOMBRE EN TIEMPO REAL ==========
+        // 1. Nombre
         function validateNameRealTime() {
             const nameInput = document.getElementById('nombre');
             const name = nameInput.value.trim();
+            if (name.length === 0) return true;
             
-            // Si está vacío, no mostrar feedback
-            if (name.length === 0) {
-                showValidationFeedback(nameInput, true);
-                return true;
-            }
-            
-            // Validar longitud
             if (name.length < 3 || name.length > 20) {
                 showValidationFeedback(nameInput, false, 'El nombre debe tener entre 3 y 20 caracteres');
                 return false;
             }
-            
-            // Validar solo letras y espacios
             if (!/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(name)) {
                 showValidationFeedback(nameInput, false, 'Solo se permiten letras y espacios');
                 return false;
             }
-            
             showValidationFeedback(nameInput, true, '✓ Nombre válido');
             return true;
         }
 
-        // ========== VALIDACIÓN DE EMAIL EN TIEMPO REAL ==========
+        // 2. Email
         function validateEmailRealTime() {
             const emailInput = document.getElementById('email');
             const email = emailInput.value.trim();
+            if (email.length === 0) return true;
             
-            // Si está vacío, no mostrar feedback
-            if (email.length === 0) {
-                showValidationFeedback(emailInput, true);
-                return true;
-            }
-            
-            // Validar formato de email - ACEPTA TODOS LOS DOMINIOS
-            // Expresión regular mejorada que acepta cualquier dominio válido
-            const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
-            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                showValidationFeedback(emailInput, false, 'Ingrese un correo electrónico válido');
+                showValidationFeedback(emailInput, false, 'Correo electrónico inválido');
                 return false;
             }
-            
-            // Verificación adicional: debe tener un punto después del @
-            if (!email.includes('@') || email.split('@')[1].indexOf('.') === -1) {
-                showValidationFeedback(emailInput, false, 'El correo debe tener un dominio válido');
-                return false;
-            }
-            
-            // Verificación adicional: el dominio debe tener al menos 2 caracteres después del último punto
-            const domainPart = email.split('@')[1];
-            const lastDotIndex = domainPart.lastIndexOf('.');
-            if (lastDotIndex === -1 || domainPart.length - lastDotIndex - 1 < 2) {
-                showValidationFeedback(emailInput, false, 'El dominio debe tener al menos 2 caracteres');
-                return false;
-            }
-            
-            showValidationFeedback(emailInput, true, '✓ Correo electrónico válido');
+            showValidationFeedback(emailInput, true, '✓ Correo válido');
             return true;
         }
 
-        // ========== VALIDACIÓN DE CONFIRMACIÓN DE CONTRASEÑA EN TIEMPO REAL ==========
+        // 3. Match Contraseñas
         function validatePasswordMatchRealTime() {
             const pw = password.value;
             const confirm = confirmPw.value;
-            
-            // Si está vacío, no mostrar feedback
-            if (confirm.length === 0) {
-                showValidationFeedback(confirmPw, true);
-                return true;
-            }
+            if (confirm.length === 0) return true;
             
             if (pw !== confirm) {
                 showValidationFeedback(confirmPw, false, '✗ Las contraseñas no coinciden');
                 return false;
             }
-            
-            showValidationFeedback(confirmPw, true, '✓ Contraseñas coinciden');
+            showValidationFeedback(confirmPw, true, '✓ Coinciden');
             return true;
         }
 
-        // ========== PROTECCIÓN DE CONTRASEÑA ==========
+        // 4. Lógica de Contraseña (SIN SÍMBOLOS)
         function checkPasswordStrength(pw) {
-            if (!pw) return {score: 0, feedback: '', percentage: 0};
+            if (!pw) return {score: 0, percentage: 0};
             
-            // Usar zxcvbn para análisis real de fuerza
             const result = zxcvbn(pw);
             
-            // Verificaciones adicionales (con longitud mínima de 6)
+            // Checks individuales
             const hasUpper = /[A-Z]/.test(pw);
             const hasLower = /[a-z]/.test(pw);
             const hasNumber = /\d/.test(pw);
+            // NOTA: Se eliminó check de símbolos
             const isCommon = commonPasswords.includes(pw.toLowerCase());
-            const isLongEnough = pw.length >= 6;
+            const isLongEnough = pw.length >= 8; 
             
-            // Calcular puntaje basado en criterios para barra progresiva
-            let criteriaScore = 0;
-            let totalCriteria = 0;
-            
-            // Longitud: puntaje progresivo (0-40%)
-            const lengthScore = Math.min(40, (pw.length / 20) * 40);
-            criteriaScore += lengthScore;
-            totalCriteria += 40;
-            
-            // Tipos de caracteres (cada uno vale 20% = 60% total)
-            // NOTA: Se eliminó el requisito de símbolo especial
-            if (hasUpper) criteriaScore += 20;
-            if (hasLower) criteriaScore += 20;
-            if (hasNumber) criteriaScore += 20;
-            totalCriteria += 60;
-            
-            // Evitar contraseñas comunes (-20% si es común)
-            if (isCommon) criteriaScore -= 20;
-            
-            // Calcular porcentaje total (0-100%)
-            let percentage = Math.max(0, Math.min(100, (criteriaScore / totalCriteria) * 100));
-            
-            // Combinar con zxcvbn (70% nuestro cálculo, 30% zxcvbn)
-            const zxcvbnPercentage = (result.score / 4) * 100;
-            percentage = (percentage * 0.7) + (zxcvbnPercentage * 0.3);
-            
-            // Convertir a score de 0-4 para consistencia
-            const finalScore = Math.floor(percentage / 25);
-            
-            // Actualizar checklist visual (sin símbolo especial)
             updateChecklist({
                 length: isLongEnough,
                 upper: hasUpper,
@@ -711,12 +525,11 @@
                 common: !isCommon
             });
             
-            return {
-                score: finalScore,
-                percentage: Math.round(percentage),
-                feedback: result.feedback.warning || '',
-                suggestions: result.feedback.suggestions || []
-            };
+            // Cálculo visual de la barra (simplificado)
+            let percentage = (result.score / 4) * 100;
+            if (!hasUpper || !hasLower || !hasNumber) percentage = Math.min(percentage, 50);
+
+            return { score: result.score, percentage: percentage };
         }
 
         function updateChecklist(checks) {
@@ -726,9 +539,9 @@
             document.getElementById('numberCheck').className = checks.number ? 'fas fa-check-circle valid-checklist' : 'fas fa-times-circle invalid-checklist';
             document.getElementById('commonCheck').className = checks.common ? 'fas fa-check-circle valid-checklist' : 'fas fa-times-circle invalid-checklist';
             
-            // Habilitar/deshabilitar botón de envío basado en requisitos básicos
-            const basicRequirementsMet = checks.length;
-            submitBtn.disabled = !basicRequirementsMet;
+            // HABILITAR BOTÓN: Ya no pide checks.symbol
+            const allRequirementsMet = checks.length && checks.upper && checks.lower && checks.number && checks.common;
+            submitBtn.disabled = !allRequirementsMet;
         }
 
         function updatePasswordStrength() {
@@ -737,437 +550,55 @@
             const bar = document.getElementById('passwordStrengthBar');
             const text = document.getElementById('passwordStrengthText');
             
-            // Actualizar barra de fuerza dinámicamente
-            bar.style.width = '0%';
-            
-            if (pw.length === 0) {
-                text.textContent = '';
-                return;
-            }
-            
-            // Establecer ancho de la barra basado en porcentaje
             bar.style.width = `${strength.percentage}%`;
             
-            // Establecer color basado en score
+            // Colores
             bar.className = 'password-strength-bar';
-            if (strength.score === 0) {
-                bar.classList.add('strength-weak');
-            } else if (strength.score === 1) {
-                bar.classList.add('strength-weak');
-            } else if (strength.score === 2) {
-                bar.classList.add('strength-medium');
-            } else if (strength.score === 3) {
-                bar.classList.add('strength-good');
-            } else {
-                bar.classList.add('strength-strong');
-            }
+            if (strength.score < 2) bar.classList.add('strength-weak');
+            else if (strength.score === 2) bar.classList.add('strength-medium');
+            else if (strength.score === 3) bar.classList.add('strength-good');
+            else bar.classList.add('strength-strong');
             
-            // Actualizar texto
             const strengthLabels = ['Muy débil', 'Débil', 'Regular', 'Buena', 'Muy fuerte'];
-            text.textContent = `Fuerza: ${strengthLabels[strength.score]} (${strength.percentage}%)`;
+            text.textContent = pw ? `Fuerza: ${strengthLabels[strength.score]}` : '';
             
-            if (strength.feedback) {
-                text.textContent += ` - ${strength.feedback}`;
-            }
-            
-            // Mostrar sugerencias si la contraseña es débil
-            if (strength.score < 2 && pw.length >= 6 && strength.suggestions.length > 0) {
-                if (!strength.feedback) {
-                    text.textContent += ` - Sugerencia: ${strength.suggestions[0]}`;
-                }
-            }
-            
-            // Validar coincidencia en tiempo real
             validatePasswordMatchRealTime();
         }
 
-        // ========== VALIDACIÓN DE CONTRASEÑA ==========
-        function validatePasswordMatch() {
-            const pw = password.value;
-            const confirm = confirmPw.value;
-            
-            if (confirm && pw !== confirm) {
-                confirmPw.setCustomValidity("Las contraseñas no coinciden");
-                confirmPw.classList.add('invalid-field');
-                return false;
-            } else {
-                confirmPw.setCustomValidity("");
-                confirmPw.classList.remove('invalid-field');
-                return true;
-            }
-        }
-
-        // ========== VALIDACIÓN DE NOMBRE ==========
-        function validateName() {
-            const nameInput = document.getElementById('nombre');
-            const name = nameInput.value.trim();
-            
-            // Validar longitud
-            if (name.length < 3 || name.length > 20) {
-                nameInput.setCustomValidity("El nombre debe tener entre 3 y 20 caracteres");
-                return false;
-            }
-            
-            // Validar solo letras y espacios
-            if (!/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(name)) {
-                nameInput.setCustomValidity("Solo se permiten letras y espacios");
-                return false;
-            }
-            
-            nameInput.setCustomValidity("");
-            return true;
-        }
-
-        // ========== PROTECCIÓN CONTRA ATAQUES ==========
-        function enforceRateLimit() {
-            const now = Date.now();
-            const timeSinceLastSubmit = now - lastSubmitTime;
-            
-            if (timeSinceLastSubmit < MIN_SUBMIT_INTERVAL) {
-                const waitTime = Math.ceil((MIN_SUBMIT_INTERVAL - timeSinceLastSubmit) / 1000);
-                rateLimitNotice.textContent = `Por seguridad, espere ${waitTime} segundos antes de reintentar.`;
-                rateLimitNotice.style.display = 'block';
-                submitBtn.disabled = true;
-                
-                setTimeout(() => {
-                    rateLimitNotice.style.display = 'none';
-                    submitBtn.disabled = false;
-                }, MIN_SUBMIT_INTERVAL - timeSinceLastSubmit);
-                
-                return false;
-            }
-            
-            lastSubmitTime = now;
-            submissionAttempts++;
-            
-            // Bloquear después de muchos intentos
-            if (submissionAttempts >= MAX_ATTEMPTS) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-ban me-2"></i>Demasiados intentos. Intente más tarde.';
-                setTimeout(() => {
-                    submissionAttempts = 0;
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<span id="submitText">Registrarme</span>';
-                }, 30000); // 30 segundos de bloqueo
-                return false;
-            }
-            
-            return true;
-        }
-
-        // ========== PÁGINA 404 PARA "¿OLVIDASTE TU CONTRASEÑA?" ==========
-        function show404Page() {
-            // Crear el overlay para la página 404
-            const overlay = document.createElement('div');
-            overlay.id = 'page404Overlay';
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(244, 247, 249, 0.95);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-                backdrop-filter: blur(5px);
-                animation: fadeIn 0.3s ease;
-            `;
-            
-            // Crear la tarjeta de error 404
-            const errorCard = document.createElement('div');
-            errorCard.className = 'register-card';
-            errorCard.style.cssText = `
-                max-width: 450px;
-                animation: slideUp 0.4s ease;
-                position: relative;
-            `;
-            
-            // Contenido de la página 404
-            errorCard.innerHTML = `
-                <button id="close404" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #666; cursor: pointer; font-size: 1.2rem;">
-                    <i class="fas fa-times"></i>
-                </button>
-                
-                <div class="header-area">
-                    <div class="header-icon" style="background-color: #fee; color: #e74c3c;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h4 class="fw-bold" style="color: #e74c3c;">Error 404</h4>
-                    <p class="text-muted small">Página no encontrada</p>
-                </div>
-                
-                <div class="text-center mb-4">
-                    <div style="font-size: 5rem; color: #f1f3f9; margin-bottom: 20px;">
-                        4<span style="color: #e74c3c;">0</span>4
-                    </div>
-                    <p class="text-muted" style="font-size: 1.1rem;">
-                        <i class="fas fa-search me-2"></i>La página que buscas no existe o ha sido movida.
-                    </p>
-                </div>
-                
-                <div class="alert alert-warning py-3 small">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Nota de seguridad:</strong> El sistema de recuperación de contraseñas está temporalmente deshabilitado por mantenimiento.
-                </div>
-                
-                <div class="security-alert" style="border-left-color: #3498db;">
-                    <i class="fas fa-user-shield me-2"></i>
-                    <strong>Alternativa segura:</strong> Contacta al administrador del sistema para restablecer tu contraseña de manera segura.
-                </div>
-                
-                <div class="mt-4">
-                    <div class="row">
-                        <div class="col-6">
-                            <button id="goBackBtn" class="btn w-100" style="background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; padding: 12px;">
-                                <i class="fas fa-arrow-left me-2"></i>Volver
-                            </button>
-                        </div>
-                        <div class="col-6">
-                            <button id="goHomeBtn" class="btn w-100" style="background-color: var(--primary-navy); color: white; padding: 12px;">
-                                <i class="fas fa-home me-2"></i>Inicio
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-center mt-4 pt-3 border-top">
-                    <p class="small text-muted mb-1">
-                        <i class="fas fa-clock me-1"></i>
-                        Intenta nuevamente más tarde
-                    </p>
-                    <p class="small text-muted">
-                        <i class="fas fa-envelope me-1"></i>
-                        Soporte: soporte@sistema.com
-                    </p>
-                </div>
-            `;
-            
-            // Agregar estilos de animación
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                
-                @keyframes slideUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
-                #page404Overlay .header-icon {
-                    animation: pulse 2s infinite;
-                }
-                
-                @keyframes pulse {
-                    0% { transform: scale(1); }
-                    50% { transform: scale(1.05); }
-                    100% { transform: scale(1); }
-                }
-            `;
-            document.head.appendChild(style);
-            
-            overlay.appendChild(errorCard);
-            document.body.appendChild(overlay);
-            
-            // Agregar funcionalidad a los botones
-            document.getElementById('close404').addEventListener('click', function() {
-                document.body.removeChild(overlay);
-                document.head.removeChild(style);
-            });
-            
-            document.getElementById('goBackBtn').addEventListener('click', function() {
-                document.body.removeChild(overlay);
-                document.head.removeChild(style);
-            });
-            
-            document.getElementById('goHomeBtn').addEventListener('click', function() {
-                document.body.removeChild(overlay);
-                document.head.removeChild(style);
-                
-                // Mostrar mensaje de redirección
-                setTimeout(() => {
-                    alert('Redirigiendo a la página de inicio...');
-                }, 100);
-            });
-            
-            // Cerrar con Escape
-            document.addEventListener('keydown', function closeOnEscape(e) {
-                if (e.key === 'Escape') {
-                    document.body.removeChild(overlay);
-                    document.head.removeChild(style);
-                    document.removeEventListener('keydown', closeOnEscape);
-                }
-            });
-            
-            // Cerrar al hacer clic fuera de la tarjeta
-            overlay.addEventListener('click', function(e) {
-                if (e.target === overlay) {
-                    document.body.removeChild(overlay);
-                    document.head.removeChild(style);
-                }
-            });
-            
-            // Enfocar el botón de cerrar
-            setTimeout(() => {
-                document.getElementById('close404').focus();
-            }, 100);
-        }
-
-        // ========== EVENT LISTENERS PARA VALIDACIÓN EN TIEMPO REAL ==========
-        document.getElementById('nombre').addEventListener('input', function() {
-            validateNameRealTime();
-            
-            // Protección contra inyección
-            this.value = this.value.replace(/[<>]/g, '');
-            
-            // Validar longitud máxima
-            if (this.value.length > 20) {
-                this.value = this.value.substring(0, 20);
-            }
-        });
-
-        document.getElementById('email').addEventListener('input', function() {
-            validateEmailRealTime();
-            
-            // Protección contra inyección
-            this.value = this.value.replace(/[<>]/g, '');
-        });
-
-        password.addEventListener('input', function() {
-            updatePasswordStrength();
-            validatePasswordMatchRealTime();
-            
-            // Protección contra inyección
-            this.value = this.value.replace(/[<>]/g, '');
-        });
-
-        confirmPw.addEventListener('input', validatePasswordMatchRealTime);
-
-        // ========== EVENT LISTENERS ORIGINALES ==========
-        togglePassword.addEventListener('click', function() {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-        });
-
-        toggleConfirmPassword.addEventListener('click', function() {
-            const type = confirmPw.getAttribute('type') === 'password' ? 'text' : 'password';
-            confirmPw.setAttribute('type', type);
-            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-        });
-
-        // Validación del formulario
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Verificar honeypot
-            const honeypot = document.querySelector('input[name="honeypot"]');
-            if (honeypot && honeypot.value) {
-                // Bot detectado, simular éxito pero no hacer nada
-                console.log('Bot detectado');
-                form.reset();
-                return;
-            }
-            
-            // Validaciones previas
-            if (!validateName()) {
-                document.getElementById('nombre').classList.add('invalid-field');
-                return;
-            }
-            
-            if (!validatePasswordMatch()) {
-                return;
-            }
-            
-            // Aplicar rate limiting
-            if (!enforceRateLimit()) {
-                return;
-            }
-            
-            // Validar reCAPTCHA
-            if (typeof grecaptcha !== 'undefined') {
-                const recaptchaResponse = grecaptcha.getResponse();
-                if (!recaptchaResponse) {
-                    alert('Por favor, complete el reCAPTCHA');
-                    return;
-                }
-            }
-            
-            // Mostrar indicador de carga
-            document.getElementById('submitText').style.display = 'none';
-            document.getElementById('submitLoading').style.display = 'inline';
-            submitBtn.disabled = true;
-            
-            // Validación final del servidor (simulada)
-            setTimeout(() => {
-                if (form.checkValidity()) {
-                    // Enviar formulario
-                    form.submit();
-                } else {
-                    // Mostrar errores
-                    form.classList.add('was-validated');
-                    document.getElementById('submitText').style.display = 'inline';
-                    document.getElementById('submitLoading').style.display = 'none';
-                    submitBtn.disabled = false;
-                }
-            }, 1000);
-        });
-
-        // Protección contra inspección de contraseña
-        password.addEventListener('contextmenu', (e) => e.preventDefault());
-        confirmPw.addEventListener('contextmenu', (e) => e.preventDefault());
-
-        // Inicializar
+        // Listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Agregar token CSRF si no existe
-            if (!document.querySelector('input[name="csrf_token"]')) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrf_token';
-                csrfInput.value = Date.now().toString(36) + Math.random().toString(36).substr(2);
-                form.appendChild(csrfInput);
-            }
-            
-            // Inicializar validación
-            updatePasswordStrength();
-            
-            // Establecer límite máximo para nombre
-            const nameInput = document.getElementById('nombre');
-            nameInput.addEventListener('keypress', function(e) {
-                if (this.value.length >= 20) {
-                    e.preventDefault();
-                }
+            // Toggle Password
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
+            });
+            toggleConfirmPassword.addEventListener('click', function() {
+                const type = confirmPw.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPw.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
             });
 
-            // Animación de entrada para breadcrumbs
-            const breadcrumb = document.querySelector('.breadcrumb');
-            if (breadcrumb) {
-                breadcrumb.style.opacity = '0';
-                breadcrumb.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    breadcrumb.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                    breadcrumb.style.opacity = '1';
-                    breadcrumb.style.transform = 'translateY(0)';
-                }, 300);
-            }
-            
-            // Manejar clic en "¿Olvidaste tu contraseña?"
-            const forgotPasswordLink = document.getElementById('forgotPassword');
-            if (forgotPasswordLink) {
-                forgotPasswordLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    show404Page();
-                });
-            }
+            // Inputs
+            document.getElementById('nombre').addEventListener('input', validateNameRealTime);
+            document.getElementById('email').addEventListener('input', validateEmailRealTime);
+            password.addEventListener('input', updatePasswordStrength);
+            confirmPw.addEventListener('input', validatePasswordMatchRealTime);
+
+            // Submit
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity() || submitBtn.disabled) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    document.getElementById('submitText').style.display = 'none';
+                    document.getElementById('submitLoading').style.display = 'inline-block';
+                    submitBtn.disabled = true;
+                }
+                form.classList.add('was-validated');
+            }, false);
         });
     </script>
 </body>
